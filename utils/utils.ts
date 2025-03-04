@@ -1,6 +1,7 @@
 import { extname, ServerRequest, blue, bold, green, red } from '../deps.ts'
 import mimes from '../mimes.ts'
 import notFound from '../404.ts'
+import { join } from "https://esm.sh/gh/jeff-hykin/good-js@1.14.3.0/source/support/posix.js"
 
 /* CLI Utils */
 
@@ -25,10 +26,11 @@ export const decode = (x: Uint8Array) => decoder.decode(x)
 
 /* Server utils */
 
-export const joinPath = (root: string, url: string): string => root + url
+export const joinPath = join
 
 export const contentType = (path: string): string => {
   const ext = String(extname(path)).toLowerCase()
+  console.log(`ext is:`,ext)
   return mimes[ext] || 'application/octet-stream'
 }
 
@@ -46,6 +48,9 @@ export const setHeaders = (cors: boolean, path?: string): Headers => {
     ? headers.set('content-type', contentType(path))
     : headers.set('content-type', 'text/html')
   cors && headers.set('Access-Control-Allow-Origin', '*')
+  headers.set('Cross-Origin-Opener-Policy', 'same-origin')
+  headers.set('Cross-Origin-Embedder-Policy', 'require-corp')
+  
   return headers
 }
 

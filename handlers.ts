@@ -17,10 +17,15 @@ import {
 } from './utils/utils.ts'
 
 import dirTemplate from './directory.ts'
+import { pathPiecesPosix } from "https://esm.sh/gh/jeff-hykin/good-js@1.14.3.0/source/flattened/path_pieces_posix.js"
 
 
 // is caught
 export const handleFileRequest = async (settings: any, req: ServerRequest, path: string) => {
+  if (settings.debug) {
+      console.log(`start of handleFileRequest()`)
+      console.log(`    path is:`,path)
+  }
   try {
     const file = await Deno.open(path)
     req.done.then(() => {
@@ -64,7 +69,14 @@ export const handleDirRequest = async (settings: any, req: ServerRequest, path: 
 }
 
 export const handleFileOrFolderRequest = async (settings: any, req: ServerRequest): Promise<void> => {
-  let path = joinPath(settings.root, unescape(req.url))
+  const relativePartFromReqest = new URL(req.headers.get('referer')).pathname.slice(1) // remove leading slash with slice
+  const [ folders, name, extension ] = pathPiecesPosix(relativePartFromReqest)
+  const relativePath = folders.join("/")
+  let path = joinPath(settings.root, unescape(relativePath), unescape(req.url))
+  if (settings.debug) {
+    console.debug(`handleFileOrFolderRequest()`)
+    console.debug(`    path is:`,path)
+  }
   let itemExists = false
   let itemInfo
   
@@ -92,6 +104,9 @@ export const handleFileOrFolderRequest = async (settings: any, req: ServerReques
   
   let output
   if (!itemExists) {
+    if (!settings.silent) {
+        console.warn(`not found: ${req.url}`)
+    }
     output = await handleNotFound(settings, req)
   } else {
     if (!itemInfo?.isDirectory) {
@@ -111,13 +126,17 @@ export const handleFileOrFolderRequest = async (settings: any, req: ServerReques
 
 // is caught
 export const handleRouteRequest = async (settings: any, req: ServerRequest): Promise<void> => {
+  if (settings.debug) {
+    console.log(`start of handleRouteRequest()`)
+  }
   try {
-    const file = await readFile(`${settings.root}/${settings.entryPoint}`)
+    const path = `${settings.root}/${settings.entryPoint}`
+    const file = await readFile(path)
     const { hostname, port } = req.conn.localAddr as Deno.NetAddr
     // is caught
     await req.respond({
       status: 200,
-      headers: setHeaders(settings.cors),
+      headers: setHeaders(settings.cors, path),
       body: settings.disableReload
         ? file
         : appendReloadScript(file, port, hostname, settings.secure),
