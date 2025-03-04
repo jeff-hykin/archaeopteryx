@@ -30,7 +30,6 @@ export const joinPath = join
 
 export const contentType = (path: string): string => {
   const ext = String(extname(path)).toLowerCase()
-  console.log(`ext is:`,ext)
   return mimes[ext] || 'application/octet-stream'
 }
 
