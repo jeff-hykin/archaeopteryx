@@ -261,6 +261,7 @@ const main = async (args?: ArchaeopteryxOptions): Promise<Server> => {
   return server
 }
 
+console.log(`import.meta.main is:`,import.meta.main)
 if (import.meta.main) {
   var argOptions = {
     boolean: [
