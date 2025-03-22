@@ -69,7 +69,8 @@ export const handleDirRequest = async (settings: any, req: ServerRequest, path: 
 }
 
 export const handleFileOrFolderRequest = async (settings: any, req: ServerRequest): Promise<void> => {
-  const relativePartFromReqest = new URL(req.headers.get('referer')).pathname.slice(1) // remove leading slash with slice
+  const pathUrlOld = req?.url ? pathPiecesPosix(req?.url)[0].join("/") : null
+  const relativePartFromReqest = (pathUrlOld || new URL(req.headers.get('referer')).pathname).slice(1) // remove leading slash with slice
   const [ folders, name, extension ] = pathPiecesPosix(relativePartFromReqest)
   const relativePath = folders.join("/")
   let path = joinPath(settings.root, unescape(relativePath), unescape(req.url))
