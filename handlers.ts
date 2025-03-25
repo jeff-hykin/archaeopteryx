@@ -69,15 +69,14 @@ export const handleDirRequest = async (settings: any, req: ServerRequest, path: 
 }
 
 export const handleFileOrFolderRequest = async (settings: any, req: ServerRequest): Promise<void> => {
-  const pathUrlOld = req?.url ? pathPiecesPosix(req?.url)[0].join("/") : null
-  const relativePartFromReqest = (pathUrlOld || new URL(req.headers.get('referer')).pathname).slice(1) // remove leading slash with slice
-  const [ folders, name, extension ] = pathPiecesPosix(relativePartFromReqest)
-  const relativePath = folders.join("/")
-  let path = joinPath(settings.root, unescape(relativePath), unescape(req.url))
   if (settings.debug) {
     console.debug(`handleFileOrFolderRequest()`)
-    console.debug(`    path is:`,path)
+    console.log(`req.url is:`,req.url)
   }
+  // 
+  // default path
+  // 
+  let path = joinPath(settings.root, unescape(req.url))
   let itemExists = false
   let itemInfo
   
@@ -85,18 +84,62 @@ export const handleFileOrFolderRequest = async (settings: any, req: ServerReques
     itemInfo = await Deno.stat(path)
     itemExists = true
   } catch (err) {
+    if (settings.debug) {
+        console.log(`- path1 didnt exist:`,path)
+        console.log(`  Deno.cwd`,Deno.cwd())
+        console.log(`  `)
+    }
     if (!(err instanceof Deno.errors.NotFound)) {
       throw err
     }
   }
   
+  //   
   // try as absolute path (NOTE: there is no way to perfectly differentiate absolute VS relative in the request)
+  //
   if (settings.allowAbsolute && !itemExists) {
     try {
       path = `/${unescape(req.url)}`
       itemInfo = await Deno.stat(path)
       itemExists = true
     } catch (err) {
+      if (settings.debug) {
+        console.log(`- path2 didnt exist:`,path)
+        console.log(`  `)
+      }
+      if (!(err instanceof Deno.errors.NotFound)) {
+        throw err
+      }
+    }
+  }
+  
+  //   
+  // ignore if this doesnt exist
+  //   
+  if (req.url.endsWith("/favicon.ico")) {
+    return
+  }
+  
+  //   
+  // alternative fallback
+  //
+  if (!itemExists) {
+    try {
+      const relativePartFromReqest = new URL(req.headers.get('referer')).pathname.slice(1) // remove leading slash with slice
+      const [ folders, name, extension ] = pathPiecesPosix(relativePartFromReqest)
+      const relativePath = folders.join("/")
+      path = joinPath(settings.root, unescape(relativePath), unescape(req.url))
+    } catch (error) {
+      
+    }
+    try {
+      itemInfo = await Deno.stat(path)
+      itemExists = true
+    } catch (err) {
+      if (settings.debug) {
+        console.log(`- path3 didnt exist:`,path)
+        console.log(`  `)
+      }
       if (!(err instanceof Deno.errors.NotFound)) {
         throw err
       }
