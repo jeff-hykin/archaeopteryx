@@ -253,8 +253,8 @@ const main = async (args?: ArchaeopteryxOptions): Promise<Server> => {
         port: settings.port,
         certFile: pathToCert,
         keyFile: pathToKey,
-        cert: Deno.readTextFileSync(pathToCert), // newer deno
-        key: Deno.readTextFileSync(pathToKey), // newer deno
+        cert: Deno.readTextFileSync(pathToCert), // TODO: improve this
+        key: Deno.readTextFileSync(pathToKey), 
         hostname: settings.hostname,
       })
     : serve({ port: settings.port, hostname: settings.hostname })
