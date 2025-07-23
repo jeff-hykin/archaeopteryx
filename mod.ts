@@ -278,6 +278,7 @@ if (import.meta.main) {
     default: {
       p: undefined,
       port: undefined,
+      hostname: undefined,
       certFile: 'archaeopteryx.crt',
       keyFile: 'archaeopteryx.key',
       entry: 'index.html',
@@ -306,8 +307,14 @@ if (import.meta.main) {
       Deno.exit(1)
     }
   }
-
+  let optionsFromConfig = {}
+  try {
+    const configText = await Deno.readTextFile(`${settings.root}/archaeopteryx.json`)
+    optionsFromConfig = JSON.parse(configText)
+  } catch (err) {}
+  
   await setGlobals({
+    ...optionsFromConfig,
     root: parsedArgs._.length > 0 ? String(parsedArgs._[0]) : '.',
     debug: parsedArgs.d,
     silent: parsedArgs.s,
@@ -323,13 +330,9 @@ if (import.meta.main) {
     entryPoint: parsedArgs.entry,
     before: parsedArgs.before,
     after: parsedArgs.after,
+    hostname: parsedArgs.hostname,
   })
-
-  try {
-    const config = await Deno.readFile(`${settings.root}/archaeopteryx.json`)
-    setGlobals(JSON.parse(decode(config)))
-  } catch (err) {}
-
+  
   const cwd = Deno.cwd()
   try {
     Deno.readDirSync(`${cwd}/${settings.root}`)

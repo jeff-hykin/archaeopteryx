@@ -98,14 +98,15 @@ export const printHelp = (): void => {
   ${bold(green('🦕  🚚 Archaeopteryx - Help'))}
 
   OPTIONS    
-  -h          # Help
-  -p          # Port | ${bold(blue('8080'))}
+  -h, --help  # Help
+  -p, --port  # Port | ${bold(blue('8080'))}
   -n          # Disable Live Reload | ${bold(blue('false'))}
   -s          # Silent | ${bold(blue('false'))}
   -d          # Debug | ${bold(blue('false'))}
   -t          # Use HTTPS - Requires trusted self signed certificate | ${bold(blue('false'))}
   -c          # Allow CORS | ${bold(blue('false'))}
   -l          # Use Directory Listings (Disables SPA routing) | ${bold(blue('false'))}
+  --hostname      # instead of 127.0.0.1 use something else
   --allowAbsolute # If a path doesnt exist, try it as an absolute path (not recommended) | ${bold(blue('false'))}
   --certFile      # Specify certificate file - ${bold(blue('archaeopteryx.crt'))}
   --keyFile       # Specify certificate file - ${bold(blue('archaeopteryx.key'))}
